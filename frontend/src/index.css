@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-medGreen-50: #f0fbfc;
-  --color-medGreen-100: #e0f5fe;
-  --color-medGreen-500: #9ee2fb;
-  --color-medGreen-600: #6ccbf0;
+  --color-medGreen-50: #f2fbf2;
+  --color-medGreen-100: #e6f7e6;
+  --color-medGreen-500: #77DD77;
+  --color-medGreen-600: #5ec15e;
+}
+
+body {
+  @apply bg-[#faf0e6];
 }

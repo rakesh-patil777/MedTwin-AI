@@ -5,7 +5,7 @@ const Navbar = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed top-0 w-full bg-white/70 backdrop-blur-lg z-50 border-b border-medGreen-50">
+    <nav className="fixed top-0 w-full bg-[#faf0e6]/70 backdrop-blur-lg z-50 border-b border-medGreen-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-medGreen-600 font-bold text-xl tracking-tight">
           <Activity size={24} className="animate-pulse" />

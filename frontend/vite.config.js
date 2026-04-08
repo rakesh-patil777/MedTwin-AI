@@ -7,4 +7,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  optimizeDeps: {
+    force: true // Force-busts the node_modules dependency cache to detect Recharts!
+  }
 })
