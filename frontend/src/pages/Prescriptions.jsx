@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, Trash2, Pill, CheckCircle2, BellRing } from 'lucide-react';
 
 const Prescriptions = () => {
@@ -6,6 +6,13 @@ const Prescriptions = () => {
   const [medName, setMedName] = useState('');
   const [selectedTimings, setSelectedTimings] = useState([]);
   const [customTime, setCustomTime] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Real-time memory ref to avoid spamming the backend network when checking alarms
+  const prescriptionsRef = useRef(prescriptions);
+  useEffect(() => {
+    prescriptionsRef.current = prescriptions;
+  }, [prescriptions]);
 
   const defaultTimings = [
     { label: 'Morning (09:00)', value: '09:00' },
@@ -23,9 +30,13 @@ const Prescriptions = () => {
     fetchPrescriptions();
     requestNotificationPermission();
 
-    // Global Frontend Reminder Checker (Runs every 30s to check times exactly)
-    const interval = setInterval(checkReminders, 30000);
-    return () => clearInterval(interval);
+    // Sub-Second Precision Reminder Agent (Now completely safe to run every 1000ms)
+    const agentInterval = setInterval(() => {
+      checkReminders();
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => { clearInterval(agentInterval); };
   }, []);
 
   const requestNotificationPermission = () => {
@@ -50,27 +61,19 @@ const Prescriptions = () => {
   const checkReminders = () => {
     const now = new Date();
     const currentHHMM = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    
-    // To prevent firing 30 times a minute, we can keep a local cache of shown reminders per day
     const dateKey = now.toDateString();
     
-    // We need fresh items. We can read from localStorage or use a ref. 
-    // This is a simple hackathon version so checking dynamically:
-    fetch(`http://localhost:5000/prescriptions?sessionId=${sessionId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) return;
-        const list = data.prescriptions;
-        list.forEach(med => {
-          if (med.timings.includes(currentHHMM)) {
-            const cacheKey = `reminded_${med.id}_${dateKey}_${currentHHMM}`;
-            if (!localStorage.getItem(cacheKey)) {
-              localStorage.setItem(cacheKey, 'true');
-              fireNotification(med.medicineName, currentHHMM);
-            }
-          }
-        });
-      });
+    // Instantly check memory local state (0 millisecond delay, 0 network fetch!)
+    const list = prescriptionsRef.current;
+    list.forEach(med => {
+      if (med.timings.includes(currentHHMM)) {
+        const cacheKey = `reminded_${med.id}_${dateKey}_${currentHHMM}`;
+        if (!localStorage.getItem(cacheKey)) {
+          localStorage.setItem(cacheKey, 'true');
+          fireNotification(med.medicineName, currentHHMM);
+        }
+      }
+    });
   };
 
   const fireNotification = (medName, time) => {
@@ -142,21 +145,84 @@ const Prescriptions = () => {
     }
   };
 
-  // Compute what's up next
+  const handleGroupDelete = async (ids) => {
+    try {
+      await Promise.all(ids.map(id =>
+        fetch(`http://localhost:5000/prescriptions/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        })
+      ));
+      fetchPrescriptions(); // Refetch perfectly once after all deletions process
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Compute what's up next down to the exact second
   const upcomingMeds = [];
-  const currentTotalMins = new Date().getHours() * 60 + new Date().getMinutes();
+  const currentTotalSeconds = currentTime.getHours() * 3600 + currentTime.getMinutes() * 60 + currentTime.getSeconds();
 
   prescriptions.forEach(med => {
     med.timings.forEach(t => {
       const [h, m] = t.split(':').map(Number);
-      const totalMins = h * 60 + m;
-      if (totalMins >= currentTotalMins) {
-        upcomingMeds.push({ ...med, time: t, diff: totalMins - currentTotalMins });
+      const totalSeconds = h * 3600 + m * 60;
+      
+      let diffSec = totalSeconds - currentTotalSeconds;
+      // Wrap-around logic: If the time already passed today, it's coming TOMORROW (+24 hrs in seconds)
+      if (diffSec <= 0) {
+        diffSec += 86400; 
       }
+      
+      upcomingMeds.push({ ...med, time: t, diffSec: diffSec });
     });
   });
   
-  upcomingMeds.sort((a, b) => a.diff - b.diff);
+  upcomingMeds.sort((a, b) => a.diffSec - b.diffSec);
+
+  const formatCountdown = (totalSec) => {
+    const hrs = Math.floor(totalSec / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+    return `${mins}m ${secs}s`;
+  };
+
+  // Group all medications that share the exact same next time block
+  const nextUpItems = upcomingMeds.length > 0 ? upcomingMeds.filter(med => med.diffSec === upcomingMeds[0].diffSec) : [];
+  
+  // Enforce strict uniqueness (ignoring accidental spaces and capitalizations)
+  const distinctMeds = [];
+  const seenNames = new Set();
+  nextUpItems.forEach(m => {
+    const rawName = m.medicineName.trim();
+    const key = rawName.toLowerCase();
+    if (!seenNames.has(key)) {
+      seenNames.add(key);
+      distinctMeds.push(rawName);
+    }
+  });
+  const nextUpNames = distinctMeds.join(' + ');
+
+  // Group Prescriptions visually so user doesn't see duplicates in the bottom History cards
+  const groupedPrescriptions = Object.values(
+    prescriptions.reduce((acc, med) => {
+      const rawName = med.medicineName.trim();
+      const key = rawName.toLowerCase();
+      if (!acc[key]) {
+        acc[key] = {
+           name: rawName,
+           ids: [med.id], // track all underlying IDs incase they press Trash
+           timings: new Set([...med.timings]) // use Set to seamlessly aggregate unique timings
+        };
+      } else {
+        acc[key].ids.push(med.id);
+        med.timings.forEach(t => acc[key].timings.add(t));
+      }
+      return acc;
+    }, {})
+  );
 
   return (
     <div className="min-h-screen bg-[#faf0e6] pt-28 px-4 pb-12">
@@ -247,33 +313,38 @@ const Prescriptions = () => {
           </div>
 
           <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-sm border border-[#d0bfae] flex-1">
-            <h2 className="text-xl font-bold text-[#2f2a26] mb-6 flex items-center gap-2">
-              <Clock size={20} className="text-[#a89b8d]" /> Today's Routine
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-[#2f2a26] flex items-center gap-2">
+                <Clock size={20} className="text-[#a89b8d]" /> Today's Routine
+              </h2>
+              <div className="px-4 py-1.5 bg-[#77DD77]/20 border border-[#77DD77]/30 text-emerald-800 font-extrabold text-sm rounded-xl tracking-wider shadow-sm">
+                 {currentTime.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </div>
+            </div>
             
-            {upcomingMeds.length > 0 && (
+            {nextUpItems.length > 0 && (
               <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">Up Next</p>
-                  <p className="text-blue-900 font-extrabold">{upcomingMeds[0].medicineName} at {upcomingMeds[0].time} <span className="text-sm font-medium text-blue-600">({upcomingMeds[0].diff} mins from now)</span></p>
+                  <p className="text-blue-900 font-extrabold">{nextUpNames} at {nextUpItems[0].time} <span className="text-sm font-medium text-blue-600">({formatCountdown(nextUpItems[0].diffSec)} from now)</span></p>
                 </div>
                 <Pill size={32} className="text-blue-300" />
               </div>
             )}
 
             <div className="space-y-4">
-              {prescriptions.length === 0 ? (
+              {groupedPrescriptions.length === 0 ? (
                 <div className="text-center py-10 text-[#a89b8d]">
                    <Pill size={48} className="mx-auto mb-4 opacity-20" />
                    <p>No active prescriptions running.</p>
                 </div>
               ) : (
-                prescriptions.map((med) => (
-                  <div key={med.id} className="group flex items-start justify-between p-4 bg-[#faf0e6] rounded-2xl border border-[#d0bfae]/50 hover:border-[#77DD77] transition-colors">
+                groupedPrescriptions.map((group) => (
+                  <div key={group.ids[0]} className="group flex items-start justify-between p-4 bg-[#faf0e6] rounded-2xl border border-[#d0bfae]/50 hover:border-[#77DD77] transition-colors">
                     <div>
-                      <h4 className="font-bold text-[#2f2a26] text-lg mb-2">{med.medicineName}</h4>
+                      <h4 className="font-bold text-[#2f2a26] text-lg mb-2">{group.name}</h4>
                       <div className="flex flex-wrap gap-2">
-                        {med.timings.sort().map(time => (
+                        {Array.from(group.timings).sort().map(time => (
                           <span key={time} className="bg-white border border-[#d0bfae] text-[#403933] text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
                             <Clock size={12} className="text-[#77DD77]" /> {time}
                           </span>
@@ -281,7 +352,7 @@ const Prescriptions = () => {
                       </div>
                     </div>
                     <button 
-                      onClick={() => handleDelete(med.id)}
+                      onClick={() => handleGroupDelete(group.ids)}
                       className="p-2 text-[#a89b8d] hover:bg-red-100 hover:text-red-500 rounded-lg transition-colors"
                     >
                       <Trash2 size={18} />

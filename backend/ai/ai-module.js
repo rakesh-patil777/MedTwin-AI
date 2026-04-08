@@ -1,5 +1,11 @@
 const fs = require('fs');
+const path = require('path');
 const pdf = require('pdf-parse');
+const mammoth = require('mammoth');
+const xlsx = require('xlsx');
+const Tesseract = require('tesseract.js');
+const axios = require('axios');
+const cheerio = require('cheerio');
 const { OpenAI } = require('openai');
 
 // ==========================================
@@ -22,15 +28,47 @@ function getSession(sessionId) {
 }
 
 // ==========================================
-// 2. PDF EXTRACTION
+// 2. UNIVERSAL FILE & LINK EXTRACTION
 // ==========================================
-async function extractTextFromPDF(filePath) {
-    if (!fs.existsSync(filePath)) {
-        throw new Error(`File not found: ${filePath}`);
+async function extractTextFromFile(targetPath) {
+    // Check if what was sent was a Web Link!
+    if (typeof targetPath === 'string' && targetPath.startsWith('http')) {
+        const res = await axios.get(targetPath, { 
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        // Scrape text out of the HTML wrapper
+        const $ = cheerio.load(res.data);
+        return $('body').text().replace(/\s+/g, ' ').trim();
     }
-    const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdf(dataBuffer);
-    return data.text.trim();
+    
+    // Otherwise it is a Local File path
+    if (!fs.existsSync(targetPath)) {
+        throw new Error(`File not found: ${targetPath}`);
+    }
+    
+    const ext = path.extname(targetPath).toLowerCase();
+    
+    if (ext === '.pdf') {
+        const dataBuffer = fs.readFileSync(targetPath);
+        const data = await pdf(dataBuffer);
+        return data.text.trim();
+    } else if (ext === '.docx' || ext === '.doc') {
+        const result = await mammoth.extractRawText({path: targetPath});
+        return result.value.trim();
+    } else if (ext === '.xlsx' || ext === '.xls' || ext === '.csv') {
+        const workbook = xlsx.readFile(targetPath);
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        return xlsx.utils.sheet_to_txt(sheet).trim();
+    } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp') {
+        // Run heavy AI vision OCR reading for physical medical images (Fallback: Tesseract since Groq Vision is deprecated)
+        const { data: { text } } = await Tesseract.recognize(targetPath, 'eng');
+        return text.trim();
+    } else if (ext === '.txt') {
+        return fs.readFileSync(targetPath, 'utf8');
+    }
+    
+    throw new Error(`Unsupported file type: ${ext}`);
 }
 
 // ==========================================
@@ -39,7 +77,10 @@ async function extractTextFromPDF(filePath) {
 async function analyzeReport(sessionId, text) {
     const session = getSession(sessionId);
     // Overwrite the last report and clear prior history for new context
-    session.lastReportText = text;
+    // Truncate text strictly to ~14,000 characters (~3,500 tokens) to safely fit Groq's 6,000 TPM limit
+    const safeTextBuffer = text.length > 14000 ? text.substring(0, 14000) + "\n\n[TEXT TRUNCATED DUE TO PLATFORM LIMITS]" : text;
+    
+    session.lastReportText = safeTextBuffer;
     session.chatHistory = [];
 
     const prompt = `
@@ -53,7 +94,7 @@ Your cholesterol is high. You may need lifestyle changes.
 Do not include bullet points, asterisks, bolding, or any extra conversational text. Just output the clean text lines.
 
 Medical Report:
-${text}
+${safeTextBuffer}
 `;
     // Send to OpenAI processing
     return await callOpenAI([
@@ -118,7 +159,7 @@ async function callOpenAI(messages) {
 // EXPORTS: Ready for any Express.js Controller
 // ==========================================
 module.exports = {
-    extractTextFromPDF,
+    extractTextFromFile,
     analyzeReport,
     chatResponse,
     getSession // Exposed for testing/debugging

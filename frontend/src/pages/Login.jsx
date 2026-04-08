@@ -7,6 +7,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+1');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,22 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    // 1. Strict Email Regex Validation (Gmail, Yahoo, or Official Domains)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|yahoo\.com|[a-zA-Z0-9.-]+\.(com|org|edu|gov|net|co\.in))$/i;
+    if (!emailRegex.test(email.trim())) {
+      setLoading(false);
+      return setError("invalid mail");
+    }
+
+    // 2. Strong Password Validation
+    // Requires min 8 chars, 1 uppercase, 1 number, and 1 special char
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setLoading(false);
+      return setError("Weak Password! Must be at least 8 characters long and contain 1 capital letter, 1 number, and 1 special character.");
+    }
+
     try {
       const res = await fetch('http://localhost:5000/login', {
         method: 'POST',
@@ -44,13 +61,14 @@ const Login = () => {
       const res = await fetch('http://localhost:5000/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
+        body: JSON.stringify({ phone: countryCode + phone })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
       setIsOtpSent(true);
-      alert(data.message); // Instructs user to check terminal
+      // For local testing & hackathons: Display it right on the frontend!
+      alert(`${data.message}\n\nHACKATHON OTP: ${data.mockOtp}`); 
     } catch (err) {
       setError(err.message);
     } finally {
@@ -66,7 +84,7 @@ const Login = () => {
       const res = await fetch('http://localhost:5000/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp })
+        body: JSON.stringify({ phone: countryCode + phone, otp })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -144,13 +162,24 @@ const Login = () => {
           {!isOtpSent ? (
             <form onSubmit={handleSendOtp}>
               <label className="block text-xs font-bold text-[#a89b8d] uppercase tracking-wider mb-2">Phone Number</label>
-              <div className="relative">
-                <PhoneIcon className="absolute left-3 top-3 text-[#a89b8d]" size={18} />
+              <div className="relative flex items-center bg-white border border-[#d0bfae] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#77DD77] transition-all">
+                <PhoneIcon className="absolute left-3 text-[#a89b8d]" size={16} />
+                <select 
+                  value={countryCode} 
+                  onChange={e => setCountryCode(e.target.value)}
+                  className="bg-transparent text-[#2f2a26] text-sm font-bold pl-9 pr-1 py-3 border-r border-[#d0bfae] focus:outline-none cursor-pointer"
+                >
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+61">🇦🇺 +61</option>
+                  <option value="+81">🇯🇵 +81</option>
+                </select>
                 <input
                   type="tel" required
                   value={phone} onChange={e => setPhone(e.target.value)}
-                  className="w-full bg-white border border-[#d0bfae] pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#77DD77] text-[#2f2a26]"
-                  placeholder="+1 (555) 000-0000"
+                  className="w-full bg-transparent px-3 py-3 focus:outline-none text-[#2f2a26]"
+                  placeholder="(555) 000-0000"
                 />
               </div>
               <button type="submit" disabled={loading} className="w-full mt-6 bg-[#2f2a26] hover:bg-[#403933] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">

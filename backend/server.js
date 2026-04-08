@@ -3,6 +3,7 @@ const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const crypto = require('crypto');
+const emailValidator = require('deep-email-validator');
 require('dotenv').config();
 
 const aiModule = require('./ai/ai-module.js');
@@ -64,9 +65,28 @@ const upload = multer({ storage });
 // ==========================================
 
 // 1. Email + Password Login (Auto-registers if new)
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: "Email and password required." });
+
+  // 🔴 DEEP VERIFICATION: Check if the mailbox physically exists on the provider's site!
+  try {
+    const MailCheck = await emailValidator.validate({
+        email: email,
+        validateRegex: true,
+        validateMx: true, // Check physical DNS Domain MX Records
+        validateTypo: true,
+        validateDisposable: true,
+        validateSMTP: false // DISABLED: ISPs block outbound Port 25 causing connection drops
+    });
+
+    if (!MailCheck.valid) {
+        console.log(`[FIREWALL] Rejected fake/dead email: ${email} - Reason: ${MailCheck.reason}`);
+        return res.status(400).json({ error: "invalid mail" });
+    }
+  } catch (err) {
+     console.log("Deep Mail Check Error: ", err.message);
+  }
 
   let user = usersDB.find(u => u.email === email);
   
@@ -93,8 +113,10 @@ app.post('/send-otp', (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore[phone] = otp;
   
-  console.log(`\n📲 [MOCK SMS] OTP for ${phone} is: ${otp}\n`);
-  return res.json({ success: true, message: "OTP sent! Check server console." });
+  console.log(`\n============================================`);
+  console.log(`📲 [MOCK SMS] OTP code for ${phone} is: ${otp}`);
+  console.log(`============================================\n`);
+  return res.json({ success: true, message: "OTP sent!", mockOtp: otp });
 });
 
 // 3. Verify OTP
@@ -202,11 +224,15 @@ app.delete('/files/:filename', (req, res) => {
 // ==========================================
 app.post('/upload-report', upload.single('document'), async (req, res) => {
   const sessionId = req.body.sessionId;
+  const linkUrl = req.body.linkUrl;
+  
   if (!sessionId) return res.status(401).json({ error: 'Unauthorized: No active session.' });
-  if (!req.file) return res.status(400).json({ error: 'No PDF document uploaded.' });
+  if (!req.file && !linkUrl) return res.status(400).json({ error: 'No document or link provided.' });
   
   try {
-    const extractedText = await aiModule.extractTextFromPDF(req.file.path);
+    const targetPath = req.file ? req.file.path : linkUrl;
+    // Route to universal generic text processor (OCR, PDF, Excel, HTML, Word)
+    const extractedText = await aiModule.extractTextFromFile(targetPath);
     
     // Simple Rule-Based Hackathon Risk Detection
     const riskKeywords = ['high bp', 'high blood pressure', 'high sugar', 'diabetes', 'low hemoglobin', 'critical', 'emergency'];
