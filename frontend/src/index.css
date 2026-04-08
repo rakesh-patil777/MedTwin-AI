@@ -7,6 +7,10 @@
   --color-medGreen-600: #5ec15e;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-[#faf0e6];
 }
