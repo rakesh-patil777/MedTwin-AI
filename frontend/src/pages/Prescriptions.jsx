@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, Plus, Trash2, Pill, CheckCircle2, BellRing, Activity } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, Plus, Trash2, Pill, CheckCircle2, BellRing } from 'lucide-react';
 
 const Prescriptions = () => {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -226,202 +225,146 @@ const Prescriptions = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-28 px-4 pb-12 font-sans selection:bg-teal-200">
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="max-w-5xl mx-auto grid lg:grid-cols-12 gap-8"
-      >
+    <div className="min-h-screen bg-[#faf0e6] pt-28 px-4 pb-12">
+      <div className="max-w-5xl mx-auto grid lg:grid-cols-12 gap-8">
         
         {/* LEFT: Add Prescription */}
         <div className="lg:col-span-5 space-y-6">
-          <motion.div 
-            whileHover={{ y: -2 }}
-            className="bg-white/90 backdrop-blur-2xl p-8 rounded-[2rem] shadow-xl shadow-teal-900/5 border border-white"
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="p-4 bg-gradient-to-br from-teal-50 to-teal-100/50 text-teal-600 rounded-2xl shadow-inner border border-white">
-                <Activity size={26} strokeWidth={2.5} />
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-sm border border-[#d0bfae]">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-red-100 text-red-500 rounded-xl">
+                <Pill size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">New Medication</h2>
-                <p className="text-sm font-medium text-slate-400 mt-0.5">Configure schedule & smart reminders</p>
+                <h2 className="text-xl font-bold text-[#2f2a26]">New Prescription</h2>
+                <p className="text-sm text-[#a89b8d]">Configure schedule & reminders</p>
               </div>
             </div>
 
-            <form onSubmit={handleAdd} className="space-y-7">
+            <form onSubmit={handleAdd} className="space-y-6">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Medication Name</label>
+                <label className="block text-sm font-bold text-[#403933] mb-2">Medicine Name</label>
                 <input 
                   type="text" 
                   value={medName}
                   onChange={(e) => setMedName(e.target.value)}
                   placeholder="e.g. Paracetamol 500mg"
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-700 font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-400 transition-all duration-300"
+                  className="w-full bg-[#faf0e6] border border-[#d0bfae] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#77DD77]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">Daily Frequency Details</label>
-                <div className="grid grid-cols-1 gap-3 mb-5">
+                <label className="block text-sm font-bold text-[#403933] mb-3">Schedule Timings</label>
+                <div className="grid grid-cols-1 gap-2 mb-4">
                   {defaultTimings.map((t, idx) => (
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
+                    <button
                       key={idx}
                       type="button"
                       onClick={() => handleTimingToggle(t.value)}
-                      className={`flex items-center justify-between px-5 py-4 rounded-2xl border-2 transition-all duration-300 ${selectedTimings.includes(t.value) ? 'bg-teal-50/50 border-teal-400 text-teal-700 font-bold shadow-sm' : 'bg-white border-transparent shadow-sm text-slate-500 font-medium hover:bg-slate-50 hover:border-slate-200'}`}
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${selectedTimings.includes(t.value) ? 'bg-[#77DD77]/10 border-[#77DD77] text-emerald-700 font-bold' : 'bg-white border-[#d0bfae] text-[#a89b8d] hover:bg-slate-50'}`}
                     >
-                      <span className="flex items-center gap-3"><Clock size={18} strokeWidth={2} /> {t.label}</span>
-                      {selectedTimings.includes(t.value) && (
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                          <CheckCircle2 size={20} className="text-teal-500"/>
-                        </motion.div>
-                      )}
-                    </motion.button>
+                      <span className="flex items-center gap-2"><Clock size={16} /> {t.label}</span>
+                      {selectedTimings.includes(t.value) && <CheckCircle2 size={18} className="text-[#77DD77]"/>}
+                    </button>
                   ))}
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <input 
                     type="time" 
                     value={customTime}
                     onChange={(e) => setCustomTime(e.target.value)}
-                    className="flex-1 bg-white border border-slate-200 shadow-sm rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-400 outline-none transition-all"
+                    className="flex-1 bg-white border border-[#d0bfae] rounded-xl px-4 py-2 text-sm text-[#403933]"
                   />
-                  <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.95 }}
+                  <button 
                     type="button"
                     onClick={handleAddCustomTime}
-                    className="bg-slate-800 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-slate-900 shadow-lg shadow-slate-800/20 transition-all"
+                    className="bg-[#2f2a26] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#403933]"
                   >
                     Add Custom
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
-              <motion.button 
-                whileHover={{ scale: 1.01, translateY: -2 }}
-                whileTap={{ scale: 0.98 }}
+              <button 
                 type="submit" 
                 disabled={!medName || selectedTimings.length === 0}
-                className="w-full bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-500 hover:to-emerald-500 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-teal-500/20 disabled:opacity-40 disabled:hover:translate-y-0 transition-all duration-300 mt-2"
+                className="w-full bg-[#77DD77] hover:bg-[#68d168] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
               >
-                <Plus size={20} strokeWidth={2.5} /> Save Smart Schedule
-              </motion.button>
+                <Plus size={18} /> Save Prescription Schedule
+              </button>
             </form>
-          </motion.div>
+          </div>
         </div>
 
         {/* RIGHT: Schedule & History */}
-        <div className="lg:col-span-7 flex flex-col gap-8">
+        <div className="lg:col-span-7 flex flex-col gap-6">
           
           {/* Active Status Ribbon */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-slate-900 p-6 rounded-[2rem] flex items-center justify-between text-white shadow-2xl shadow-slate-900/10 overflow-hidden relative"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md">
-                <BellRing size={26} className="text-teal-300 animate-pulse" />
-              </div>
+          <div className="bg-[#77DD77] p-5 rounded-2xl flex items-center justify-between text-white shadow-md shadow-[#77DD77]/20">
+            <div className="flex items-center gap-3">
+              <BellRing size={24} className="animate-wiggle" />
               <div>
-                <h3 className="font-black text-xl tracking-tight">Agent Active</h3>
-                <p className="text-sm font-medium text-slate-300 mt-0.5">Desktop & Voice routing enabled securely.</p>
+                <h3 className="font-extrabold text-lg">Reminder Agent Active</h3>
+                <p className="text-sm text-white/90">Browser notifications enabled. Leave MedTwin open in a tab.</p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <div className="bg-white/90 backdrop-blur-2xl p-8 rounded-[2rem] shadow-xl shadow-teal-900/5 border border-white flex-1">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                Overview
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-sm border border-[#d0bfae] flex-1">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-[#2f2a26] flex items-center gap-2">
+                <Clock size={20} className="text-[#a89b8d]" /> Today's Routine
               </h2>
-              <div className="px-5 py-2 bg-slate-50 border border-slate-200 text-slate-600 font-bold text-sm rounded-xl tracking-wider shadow-inner">
+              <div className="px-4 py-1.5 bg-[#77DD77]/20 border border-[#77DD77]/30 text-emerald-800 font-extrabold text-sm rounded-xl tracking-wider shadow-sm">
                  {currentTime.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </div>
             </div>
             
-            <AnimatePresence mode="popLayout">
-              {nextUpItems.length > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="mb-8 relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-100 p-6 rounded-[2rem] flex items-center justify-between shadow-lg shadow-blue-900/5"
-                >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                       <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-                       <p className="text-xs font-black text-blue-600 uppercase tracking-widest">Priority Up Next</p>
-                    </div>
-                    <p className="text-3xl tracking-tight text-slate-900 font-black mb-1">{nextUpNames}</p>
-                    <p className="font-bold text-blue-600">at {nextUpItems[0].time} <span className="opacity-60 ml-2 font-medium">({formatCountdown(nextUpItems[0].diffSec)} left)</span></p>
-                  </div>
-                  <div className="bg-white p-4 rounded-2xl shadow-sm text-blue-500 relative z-10 border border-blue-50">
-                    <Pill size={36} strokeWidth={2} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {nextUpItems.length > 0 && (
+              <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">Up Next</p>
+                  <p className="text-blue-900 font-extrabold">{nextUpNames} at {nextUpItems[0].time} <span className="text-sm font-medium text-blue-600">({formatCountdown(nextUpItems[0].diffSec)} from now)</span></p>
+                </div>
+                <Pill size={32} className="text-blue-300" />
+              </div>
+            )}
 
-            <div className="space-y-4 relative">
-              <AnimatePresence>
-                {groupedPrescriptions.length === 0 ? (
-                  <motion.div 
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="text-center py-16"
-                  >
-                     <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                       <Pill size={40} className="text-slate-300" strokeWidth={1.5} />
-                     </div>
-                     <p className="text-slate-400 font-medium text-lg">Your itinerary is currently clear.</p>
-                  </motion.div>
-                ) : (
-                  groupedPrescriptions.map((group, i) => (
-                    <motion.div 
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      transition={{ delay: i * 0.05 }}
-                      key={group.ids[0]} 
-                      whileHover={{ scale: 1.01, backgroundColor: '#f8fafc' }}
-                      className="group flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-teal-100 transition-all duration-300"
-                    >
-                      <div>
-                        <h4 className="font-black text-slate-800 text-lg mb-3 tracking-tight">{group.name}</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {Array.from(group.timings).sort().map(time => (
-                            <span key={time} className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
-                              <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span> {time}
-                            </span>
-                          ))}
-                        </div>
+            <div className="space-y-4">
+              {groupedPrescriptions.length === 0 ? (
+                <div className="text-center py-10 text-[#a89b8d]">
+                   <Pill size={48} className="mx-auto mb-4 opacity-20" />
+                   <p>No active prescriptions running.</p>
+                </div>
+              ) : (
+                groupedPrescriptions.map((group) => (
+                  <div key={group.ids[0]} className="group flex items-start justify-between p-4 bg-[#faf0e6] rounded-2xl border border-[#d0bfae]/50 hover:border-[#77DD77] transition-colors">
+                    <div>
+                      <h4 className="font-bold text-[#2f2a26] text-lg mb-2">{group.name}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from(group.timings).sort().map(time => (
+                          <span key={time} className="bg-white border border-[#d0bfae] text-[#403933] text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
+                            <Clock size={12} className="text-[#77DD77]" /> {time}
+                          </span>
+                        ))}
                       </div>
-                      <motion.button 
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleGroupDelete(group.ids)}
-                        className="p-3 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-colors duration-300"
-                      >
-                        <Trash2 size={20} strokeWidth={2} />
-                      </motion.button>
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
+                    </div>
+                    <button 
+                      onClick={() => handleGroupDelete(group.ids)}
+                      className="p-2 text-[#a89b8d] hover:bg-red-100 hover:text-red-500 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
+
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
