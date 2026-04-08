@@ -9,7 +9,7 @@ const Hero3D = () => {
         <directionalLight position={[1, 2, 3]} intensity={2} />
         <Sphere args={[1, 100, 200]} scale={1.3}>
           <MeshDistortMaterial 
-            color="#22c55e" 
+            color="#9ee2fb" 
             attach="material" 
             distort={0.4} 
             speed={2.5} 

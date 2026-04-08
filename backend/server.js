@@ -1,19 +1,21 @@
 import express from 'express';
 import cors from 'cors';
+import testRoute from './routes/test.route.js';
+import uploadRoute from './routes/upload.route.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // JSON Handling Requirement
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'MedTwin AI Backend is running!' });
-});
-
-app.get('/', (req, res) => {
-  res.send('MedTwin AI Backend API Details available at /api/health');
-});
+// Routes
+app.use('/test', testRoute);
+app.use('/api/upload', uploadRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
