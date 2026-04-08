@@ -27,8 +27,10 @@ const Dashboard = () => {
   ]);
 
   const fetchPastFiles = async () => {
+    const sessionId = localStorage.getItem('medtwin_session');
+    if (!sessionId) return;
     try {
-      const res = await fetch('http://localhost:5000/files');
+      const res = await fetch(`http://localhost:5000/files?sessionId=${sessionId}`);
       const data = await res.json();
       if (data.success) setPastFiles(data.files);
     } catch (e) {
@@ -38,8 +40,9 @@ const Dashboard = () => {
 
   const handleDeleteFile = async (id) => {
     if (!window.confirm("Are you sure you want to permanently delete this medical record?")) return;
+    const sessionId = localStorage.getItem('medtwin_session');
     try {
-      await fetch(`http://localhost:5000/files/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`http://localhost:5000/files/${encodeURIComponent(id)}?sessionId=${sessionId}`, { method: 'DELETE' });
       fetchPastFiles();
     } catch (e) {
       console.error("Delete failed", e);
@@ -66,9 +69,9 @@ const Dashboard = () => {
     }
 
     const formData = new FormData();
+    formData.append('sessionId', sessionId); 
     if (selectedFiles.length > 0) formData.append('document', selectedFiles[0]);
     if (linkInput.trim()) formData.append('linkUrl', linkInput.trim());
-    formData.append('sessionId', sessionId); 
 
     try {
       setIsUploading(true);

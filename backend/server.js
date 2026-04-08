@@ -56,7 +56,10 @@ app.use('/uploads', express.static('uploads'));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+  filename: (req, file, cb) => {
+    const safeSession = req.body.sessionId || 'anonymous';
+    cb(null, `${safeSession}__${Date.now()}__${file.originalname}`);
+  }
 });
 const upload = multer({ storage });
 
@@ -88,11 +91,12 @@ app.post('/login', async (req, res) => {
      console.log("Deep Mail Check Error: ", err.message);
   }
 
-  let user = usersDB.find(u => u.email === email);
+  let user = usersDB.find(u => u.email === email.toLowerCase());
   
   if (!user) {
-    // Hackathon simple feature: Auto-register if not found
-    user = { email, password: hashPassword(password), phone: null, id: generateUUID() };
+    // Generate a deterministic identity lock based on their precise email so data survives server crashes
+    const deterministicId = crypto.createHash('sha256').update(email.toLowerCase()).digest('hex').substring(0, 16);
+    user = { email: email.toLowerCase(), password: hashPassword(password), phone: null, id: deterministicId };
     usersDB.push(user);
     console.log(`👤 New user registered: ${email}`);
   } else {
@@ -126,7 +130,9 @@ app.post('/verify-otp', (req, res) => {
 
   let user = usersDB.find(u => u.phone === phone);
   if (!user) {
-    user = { email: null, password: null, phone, id: generateUUID() };
+    // Generate a deterministic identity lock based on their precise phone number
+    const deterministicId = crypto.createHash('sha256').update(phone).digest('hex').substring(0, 16);
+    user = { email: null, password: null, phone, id: deterministicId };
     usersDB.push(user);
     console.log(`👤 New phone user registered: ${phone}`);
   }
@@ -174,16 +180,22 @@ app.delete('/prescriptions/:id', (req, res) => {
 // LIST ALL SAVED MEDICAL RECORDS API
 // ==========================================
 app.get('/files', (req, res) => {
+  const sessionId = req.query.sessionId;
+  if (!sessionId) return res.status(401).json({ error: 'Unauthorized.' });
+  
   try {
     const files = fs.readdirSync(uploadDir);
-    // Sort array by newest upload time first (timestamp prefix)
-    const sortedFiles = files.sort().reverse();
+    // Strict Database Isolation: Physical read dir filters natively to UUID prefix
+    const userFiles = files.filter(f => f.startsWith(`${sessionId}__`));
+    
+    const sortedFiles = userFiles.sort().reverse();
     
     const fileData = [];
     const seenNames = new Set();
     
     sortedFiles.forEach(filename => {
-      const originalName = filename.split('-').slice(1).join('-') || filename;
+      const parts = filename.split('__');
+      const originalName = parts.length >= 3 ? parts.slice(2).join('__') : filename;
       
       // Deduplicate: Only add the latest version of physical files with the same original name
       if (!seenNames.has(originalName)) {
@@ -209,6 +221,12 @@ app.get('/files', (req, res) => {
 app.delete('/files/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
+    const sessionId = req.query.sessionId;
+    
+    if (!sessionId || !filename.startsWith(`${sessionId}__`)) {
+       return res.status(403).json({ error: "Access Denied. You do not own this file structure." });
+    }
+
     const filepath = uploadDir + filename;
     if (fs.existsSync(filepath)) {
       fs.unlinkSync(filepath);
