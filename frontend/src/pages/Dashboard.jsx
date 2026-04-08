@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UploadCloud, Server, AlertCircle, Loader2, BrainCircuit, FileText, Activity } from 'lucide-react';
+import { UploadCloud, Server, AlertCircle, Loader2, BrainCircuit, FileText, Activity, Trash2 } from 'lucide-react';
 
 const Dashboard = () => {
   const [apiResponse, setApiResponse] = useState("");
@@ -7,10 +7,12 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadStatus, setUploadStatus] = useState("");
-  const [reportAnalysis, setReportAnalysis] = useState(""); // Stores GPT text
+  const [reportAnalysis, setReportAnalysis] = useState(""); 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [pastFiles, setPastFiles] = useState([]);
+  const [isRiskAlert, setIsRiskAlert] = useState(false);
+  const [healthScore, setHealthScore] = useState(null);
 
   const fetchPastFiles = async () => {
     try {
@@ -19,6 +21,16 @@ const Dashboard = () => {
       if (data.success) setPastFiles(data.files);
     } catch (e) {
       console.warn("Could not load past file history", e);
+    }
+  };
+
+  const handleDeleteFile = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this medical record?")) return;
+    try {
+      await fetch(`http://localhost:5000/files/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      fetchPastFiles();
+    } catch (e) {
+      console.error("Delete failed", e);
     }
   };
 
@@ -62,6 +74,8 @@ const Dashboard = () => {
       
       setUploadStatus(data.message);
       setReportAnalysis(data.explanation); // Grab AI text
+      setIsRiskAlert(data.isCritical || false); // Update Risk state
+      setHealthScore(data.healthScore || null); // Health Score
       setSelectedFiles([]); 
       fetchPastFiles(); // Refetch library after new upload!
     } catch (err) {
@@ -207,18 +221,24 @@ const Dashboard = () => {
                     <span className="ml-auto bg-white border border-[#d0bfae] text-[#a89b8d] text-xs font-bold px-2.5 py-1 rounded-full">{pastFiles.length} Records</span>
                  </div>
                  <div className="p-2 max-h-56 overflow-y-auto w-full">
-                    <ul className="w-full">
+                     <ul className="w-full">
                       {pastFiles.map((f, i) => (
-                         <li key={i}>
+                         <li key={i} className="flex items-center group w-full justify-between border-b border-[#d0bfae]/30 hover:bg-white/60 transition-colors">
                             <a 
                               href={f.path} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="px-4 py-3 text-sm text-[#403933] font-medium border-b border-[#d0bfae]/30 flex items-center gap-3 hover:bg-white/60 transition-colors cursor-pointer w-full"
+                              className="px-4 py-3 text-sm text-[#403933] font-medium flex items-center gap-3 cursor-pointer flex-1 min-w-0"
                             >
-                              <div className="p-1.5 bg-[#e8dccf] rounded text-[#2f2a26]"><FileText size={14} /></div>
-                              <span className="truncate flex-1">{f.name}</span>
+                              <div className="p-1.5 bg-[#e8dccf] rounded text-[#2f2a26] shrink-0"><FileText size={14} /></div>
+                              <span className="truncate">{f.name}</span>
                             </a>
+                            <button
+                              onClick={() => handleDeleteFile(f.id)}
+                              className="p-2 mr-3 opacity-0 group-hover:opacity-100 text-[#a89b8d] hover:bg-red-100 hover:text-red-500 rounded-lg transition-all shrink-0"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                          </li>
                       ))}
                     </ul>
@@ -265,6 +285,47 @@ const Dashboard = () => {
 
                   {reportAnalysis && !isUploading && (
                      <div className="prose prose-lg prose-slate max-w-none text-[#403933] pb-10">
+                         {/* Emergency Risk Red Alert Box */}
+                        {isRiskAlert && (
+                          <div className="bg-red-50 p-6 rounded-2xl border border-red-200 mb-6 flex items-start gap-4 shadow-sm animate-pulse-slow">
+                             <div className="p-2 bg-red-100 text-red-600 rounded-full shrink-0">
+                               <AlertCircle size={24} />
+                             </div>
+                             <div>
+                               <h4 className="text-red-700 font-extrabold text-sm tracking-wider uppercase mb-1">
+                                 Emergency Risk Alert Detected
+                               </h4>
+                               <p className="text-sm font-medium text-red-600">
+                                 ⚠️ Consult doctor immediately! The system flagged critical biometrics within the provided PDF (e.g., highly abnormal BP, glucose, or hemoglobin patterns).
+                               </p>
+                             </div>
+                          </div>
+                        )}
+
+                        {/* Health Score Circular Indicator */}
+                        {healthScore !== null && (
+                          <div className="bg-white p-6 rounded-2xl border border-[#d0bfae] mb-6 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+                            <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                               <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                  <path className="text-[#e8dccf]" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                  <path className={`${healthScore > 80 ? 'text-[#77DD77]' : healthScore > 50 ? 'text-amber-400' : 'text-red-500'}`} strokeDasharray={`${healthScore}, 100`} strokeWidth="3" stroke="currentColor" fill="none" strokeLinecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                               </svg>
+                               <div className="absolute flex flex-col items-center justify-center">
+                                  <span className="text-xl font-extrabold text-[#2f2a26]">{healthScore}</span>
+                                  <span className="text-[10px] uppercase font-bold text-[#a89b8d]">/ 100</span>
+                               </div>
+                            </div>
+                            <div>
+                               <h4 className="text-[#2f2a26] font-bold text-lg mb-1">Your Health Score: {healthScore}/100</h4>
+                               <p className="text-sm text-[#403933] font-medium leading-relaxed">
+                                 {healthScore > 80 ? "Optimal profile detected. Biomarkers are largely within excellent normative ranges." 
+                                 : healthScore > 50 ? "Moderate health risks identified. Several biomarkers present borderline standard deviations." 
+                                 : "Critical threshold risk. Serious biomarker abnormalities systematically identified across the report."}
+                               </p>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="bg-[#faf0e6] p-6 rounded-2xl border border-[#d0bfae] mb-6">
                            <h4 className="text-[#2f2a26] font-bold text-sm tracking-wider uppercase mb-2 flex items-center gap-2">
                              <AlertCircle size={14} className="text-[#77DD77]"/> Automated Insight Match

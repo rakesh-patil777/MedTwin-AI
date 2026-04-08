@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, LayoutDashboard, MessageSquare, LogOut } from 'lucide-react';
+import { Activity, LayoutDashboard, MessageSquare, LogOut, Pill } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
@@ -23,6 +23,9 @@ const Navbar = () => {
             <>
               <Link to="/dashboard" className={`font-medium transition-colors flex items-center gap-2 ${location.pathname === '/dashboard' ? 'text-medGreen-600' : 'text-slate-500 hover:text-medGreen-500'}`}>
                 <LayoutDashboard size={18} /> Dashboard
+              </Link>
+              <Link to="/prescriptions" className={`font-medium transition-colors flex items-center gap-2 ${location.pathname === '/prescriptions' ? 'text-medGreen-600' : 'text-slate-500 hover:text-medGreen-500'}`}>
+                <Pill size={18} /> Prescriptions
               </Link>
               <Link to="/chat" className={`font-medium transition-colors flex items-center gap-2 ${location.pathname === '/chat' ? 'text-medGreen-600' : 'text-slate-500 hover:text-medGreen-500'}`}>
                 <MessageSquare size={18} /> Chat

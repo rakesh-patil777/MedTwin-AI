@@ -16,6 +16,7 @@ const PORT = process.env.PORT || 5000;
 // In a real app we would use MongoDB here.
 const usersDB = []; 
 const otpStore = {}; 
+const prescriptionsDB = {}; 
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
@@ -113,21 +114,86 @@ app.post('/verify-otp', (req, res) => {
 });
 
 // ==========================================
+// PRESCRIPTION REMINDER APIs
+// ==========================================
+app.post('/add-prescription', (req, res) => {
+  const { sessionId, medicineName, timings } = req.body;
+  if (!sessionId) return res.status(401).json({ error: 'Unauthorized.' });
+  if (!prescriptionsDB[sessionId]) prescriptionsDB[sessionId] = [];
+  
+  const newPrescription = {
+    id: generateUUID(),
+    medicineName,
+    timings // Array like ["09:00", "14:00"]
+  };
+  
+  prescriptionsDB[sessionId].push(newPrescription);
+  res.json({ success: true, prescription: newPrescription });
+});
+
+app.get('/prescriptions', (req, res) => {
+  const sessionId = req.query.sessionId;
+  if (!sessionId) return res.status(401).json({ error: 'Unauthorized.' });
+  const list = prescriptionsDB[sessionId] || [];
+  res.json({ success: true, prescriptions: list });
+});
+
+app.delete('/prescriptions/:id', (req, res) => {
+  const { sessionId } = req.body;
+  if (!sessionId) return res.status(401).json({ error: 'Unauthorized.' });
+  const idToRemove = req.params.id;
+  if (prescriptionsDB[sessionId]) {
+     prescriptionsDB[sessionId] = prescriptionsDB[sessionId].filter(p => p.id !== idToRemove);
+  }
+  res.json({ success: true });
+});
+
+// ==========================================
 // LIST ALL SAVED MEDICAL RECORDS API
 // ==========================================
 app.get('/files', (req, res) => {
   try {
     const files = fs.readdirSync(uploadDir);
-    // Sort array by newest upload time first based on our Date.now() prefix
-    const fileData = files.map(filename => ({
-      name: filename.split('-').slice(1).join('-') || filename, // Original clean name
-      path: `http://localhost:5000/uploads/${encodeURIComponent(filename)}`
-    })).reverse();
+    // Sort array by newest upload time first (timestamp prefix)
+    const sortedFiles = files.sort().reverse();
+    
+    const fileData = [];
+    const seenNames = new Set();
+    
+    sortedFiles.forEach(filename => {
+      const originalName = filename.split('-').slice(1).join('-') || filename;
+      
+      // Deduplicate: Only add the latest version of physical files with the same original name
+      if (!seenNames.has(originalName)) {
+        seenNames.add(originalName);
+        fileData.push({
+          id: filename,
+          name: originalName,
+          path: `http://localhost:${PORT}/uploads/${encodeURIComponent(filename)}`
+        });
+      }
+    });
     
     return res.json({ success: true, files: fileData });
   } catch (error) {
     console.error("File Vault Error:", error.message);
     return res.status(500).json({ error: 'Failed to access physical file vault.' });
+  }
+});
+
+// ==========================================
+// DELETE A SECURE VAULT FILE API
+// ==========================================
+app.delete('/files/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const filepath = uploadDir + filename;
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
+    return res.json({ success: true, message: "File removed securely." });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to delete file." });
   }
 });
 
@@ -141,12 +207,34 @@ app.post('/upload-report', upload.single('document'), async (req, res) => {
   
   try {
     const extractedText = await aiModule.extractTextFromPDF(req.file.path);
+    
+    // Simple Rule-Based Hackathon Risk Detection
+    const riskKeywords = ['high bp', 'high blood pressure', 'high sugar', 'diabetes', 'low hemoglobin', 'critical', 'emergency'];
+    const textLower = extractedText.toLowerCase();
+    const isCritical = riskKeywords.some(keyword => textLower.includes(keyword));
+
+    // Simple Rule-based Health Score System
+    let healthScore = 100;
+    if (textLower.match(/high bp|high blood pressure|hypertension/)) healthScore -= 15;
+    else if (textLower.match(/low bp|hypotension/)) healthScore -= 5;
+    
+    if (textLower.match(/high sugar|diabetes|high glucose/)) healthScore -= 20;
+    else if (textLower.match(/low sugar|hypoglycemia/)) healthScore -= 10;
+    
+    if (textLower.match(/high cholesterol|hyperlipidemia/)) healthScore -= 15;
+    if (textLower.match(/low hemoglobin|anemia/)) healthScore -= 10;
+    if (textLower.match(/critical|emergency/)) healthScore -= 25;
+    
+    healthScore = Math.max(10, healthScore);
+
     const analysis = await aiModule.analyzeReport(sessionId, extractedText);
     
     return res.json({
       success: true,
       message: 'PDF analyzed perfectly by MedTwin AI!',
-      explanation: analysis
+      explanation: analysis,
+      isCritical: isCritical,
+      healthScore: healthScore
     });
   } catch (error) {
     console.error("Upload API Error:", error.message);

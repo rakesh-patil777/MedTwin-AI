@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot } from 'lucide-react';
+import { Send, User, Bot, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
 const Chat = () => {
   const [messages, setMessages] = useState([
@@ -7,7 +7,63 @@ const Chat = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false); // Defaults to OFF per user request
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Bonus: Text-To-Speech
+  const speakResponse = (text) => {
+    if (!isVoiceEnabled) return;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop current speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.pitch = 1.0;
+      utterance.rate = 1.05;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Speech-To-Text
+  const toggleListen = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      return alert("Sorry, your browser doesn't support local Speech Recognition.");
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    
+    let baseInput = input;
+    
+    recognition.onresult = (e) => {
+      let interim = "";
+      let final = baseInput;
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript + " ";
+          baseInput = final; // freeze the final accumulation
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      setInput(final + interim);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+    
+    recognition.start();
+    setIsListening(true);
+    recognitionRef.current = recognition;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,7 +97,9 @@ const Chat = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Server error tracking request');
       
+      const cleanReply = data.reply.replace(/[*#]/g, ''); // strip markdown visually for speaking config
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+      speakResponse(cleanReply);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Error: ' + err.message }]);
     } finally {
@@ -64,6 +122,30 @@ const Chat = () => {
               <p className="text-xs text-slate-500">Medical AI Assistant</p>
             </div>
           </div>
+          
+          <button 
+             onClick={() => {
+                if (isVoiceEnabled) {
+                   if (window.speechSynthesis) window.speechSynthesis.cancel();
+                   setIsVoiceEnabled(false);
+                } else {
+                   setIsVoiceEnabled(true);
+                   const lastMsg = messages.slice().reverse().find(m => m.role === 'assistant');
+                   if (lastMsg && window.speechSynthesis) {
+                      window.speechSynthesis.cancel();
+                      const cleanReply = lastMsg.content.replace(/[*#]/g, '');
+                      const utterance = new SpeechSynthesisUtterance(cleanReply);
+                      utterance.pitch = 1.0;
+                      utterance.rate = 1.05;
+                      window.speechSynthesis.speak(utterance);
+                   }
+                }
+             }}
+             className={`p-2 px-3 rounded-lg transition-colors shadow-sm flex items-center gap-2 text-xs font-bold ${isVoiceEnabled ? 'bg-[#77DD77] text-white' : 'bg-white text-[#a89b8d] border border-[#d0bfae]'}`}
+          >
+             {isVoiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+             {isVoiceEnabled ? 'Voice On' : 'Voice Off'}
+          </button>
         </div>
 
         {/* Messaging Interface */}
@@ -115,10 +197,23 @@ const Chat = () => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
               }}
               placeholder="Message MedTwin AI..."
-              className="w-full bg-[#faf0e6] border border-[#d0bfae] text-slate-800 text-[15px] rounded-xl px-4 py-3.5 pr-12 focus:outline-none focus:ring-2 focus:ring-[#77DD77] focus:border-transparent resize-none shadow-sm"
+              className="w-full bg-[#faf0e6] border border-[#d0bfae] text-slate-800 text-[15px] rounded-xl px-4 py-3.5 pr-[5.5rem] focus:outline-none focus:ring-2 focus:ring-[#77DD77] focus:border-transparent resize-none shadow-sm"
               rows={1}
               style={{ minHeight: '52px', maxHeight: '150px' }}
             />
+            
+            {/* Microphone Button */}
+            <button 
+              type="button" 
+              onClick={toggleListen}
+              className={`absolute right-12 bottom-2 p-2 rounded-lg transition-colors shadow-sm ${isListening ? 'bg-red-400 text-white animate-pulse' : 'bg-[#d0bfae] text-slate-700 hover:bg-[#c2b6ac]'}`}
+              style={{ marginBottom: '2px' }}
+              title={isListening ? "Stop Listening" : "Speak to AI"}
+            >
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
+
+            {/* Send Button */}
             <button 
               type="submit" 
               disabled={isLoading || !input.trim()}
