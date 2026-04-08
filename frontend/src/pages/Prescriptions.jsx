@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, Trash2, Pill, CheckCircle2, BellRing } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Prescriptions = () => {
   const [prescriptions, setPrescriptions] = useState([]);

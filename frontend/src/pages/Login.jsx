@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Phone as PhoneIcon, KeyRound, ArrowRight, Loader2 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Login = () => {
   const [authMode, setAuthMode] = useState('email'); // 'email' or 'otp'

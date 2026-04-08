@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Chat = () => {
   const [messages, setMessages] = useState([

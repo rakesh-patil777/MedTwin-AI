@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { UploadCloud, Server, AlertCircle, Loader2, BrainCircuit, FileText, Activity, Trash2, TrendingUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Dashboard = () => {
   const [apiResponse, setApiResponse] = useState("");
