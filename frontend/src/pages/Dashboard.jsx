@@ -10,6 +10,17 @@ const Dashboard = () => {
   const [reportAnalysis, setReportAnalysis] = useState(""); // Stores GPT text
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [pastFiles, setPastFiles] = useState([]);
+
+  const fetchPastFiles = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/files');
+      const data = await res.json();
+      if (data.success) setPastFiles(data.files);
+    } catch (e) {
+      console.warn("Could not load past file history", e);
+    }
+  };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -27,14 +38,21 @@ const Dashboard = () => {
        return setUploadError("Sorry, we only accept PDF files!");
     }
 
+    const sessionId = localStorage.getItem('medtwin_session');
+    if (!sessionId) {
+      window.location.href = '/login';
+      return;
+    }
+
     const formData = new FormData();
     formData.append('document', file);
+    formData.append('sessionId', sessionId); // Attach custom auth context!
 
     try {
       setIsUploading(true);
       setUploadError(null);
       setUploadStatus("Uploading...");
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch('http://localhost:5000/upload-report', {
         method: 'POST',
         body: formData,
       });
@@ -45,6 +63,7 @@ const Dashboard = () => {
       setUploadStatus(data.message);
       setReportAnalysis(data.explanation); // Grab AI text
       setSelectedFiles([]); 
+      fetchPastFiles(); // Refetch library after new upload!
     } catch (err) {
       setUploadError(err.message);
       setUploadStatus("");
@@ -54,6 +73,12 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    const sessionId = localStorage.getItem('medtwin_session');
+    if (!sessionId) {
+       window.location.href = '/login'; // Secure the route
+       return;
+    }
+
     // Fetch API connection on component mount
     fetch('http://localhost:5000/test')
       .then(res => {
@@ -68,6 +93,8 @@ const Dashboard = () => {
         setError(err.message);
         setLoading(false);
       });
+      
+    fetchPastFiles(); // Ping history strictly once on mount
   }, []);
 
   return (
@@ -168,6 +195,36 @@ const Dashboard = () => {
                 )}
               </div>
            </div>
+
+           {/* Medical History Vault Card */}
+           {pastFiles.length > 0 && (
+              <div className="bg-[#faf0e6]/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-[#d0bfae] overflow-hidden mt-8">
+                 <div className="px-6 py-5 border-b border-[#d0bfae]/50 flex items-center gap-3">
+                    <div className="p-2 bg-[#2f2a26] text-white rounded-lg">
+                       <FileText size={18} />
+                    </div>
+                    <h3 className="font-bold text-[#2f2a26] text-sm tracking-wider uppercase">Medical History Vault</h3>
+                    <span className="ml-auto bg-white border border-[#d0bfae] text-[#a89b8d] text-xs font-bold px-2.5 py-1 rounded-full">{pastFiles.length} Records</span>
+                 </div>
+                 <div className="p-2 max-h-56 overflow-y-auto w-full">
+                    <ul className="w-full">
+                      {pastFiles.map((f, i) => (
+                         <li key={i}>
+                            <a 
+                              href={f.path} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-4 py-3 text-sm text-[#403933] font-medium border-b border-[#d0bfae]/30 flex items-center gap-3 hover:bg-white/60 transition-colors cursor-pointer w-full"
+                            >
+                              <div className="p-1.5 bg-[#e8dccf] rounded text-[#2f2a26]"><FileText size={14} /></div>
+                              <span className="truncate flex-1">{f.name}</span>
+                            </a>
+                         </li>
+                      ))}
+                    </ul>
+                 </div>
+              </div>
+           )}
         </div>
 
         {/* RIGHT COLUMN: AI ANALYSIS ENGINE */}

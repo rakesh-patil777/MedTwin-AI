@@ -12,7 +12,13 @@ const Chat = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  useEffect(() => { scrollToBottom(); }, [messages]);
+  
+  useEffect(() => { 
+    if (!localStorage.getItem('medtwin_session')) {
+      window.location.href = '/login';
+    }
+    scrollToBottom(); 
+  }, [messages]);
 
   const handleSend = async (e) => {
     e?.preventDefault();
@@ -25,10 +31,11 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const sessionId = localStorage.getItem('medtwin_session');
+      const response = await fetch('http://localhost:5000/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }) 
+        body: JSON.stringify({ message: input.trim(), sessionId: sessionId }) 
       });
       
       const data = await response.json();

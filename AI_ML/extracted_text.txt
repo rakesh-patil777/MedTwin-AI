@@ -1,0 +1,320 @@
+Extracting text from: MUCLecture_2022_5195484.pdf...
+
+--- EXTRACTED TEXT ---
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+1 
+ 
+ 
+RED BLOOD CELLS )Erythrocytes) 
+RBC, hemoglobin, erythropoiesis, anemia 
+ 
+ 
+ 
+Introduction:  
+• Red  blood  cells   (also  known as   erythrocytes)  are  the   most 
+abundant blood cells in comparison to white blood cells.  
+• They are red in color due to the presence of hemoglobin which is 
+known as red characteristic pigment.   
+• Their life span in circulation is about 120 days.  
+• Red blood cells (RBC) are made in the bone marrow and contain 
+hemoglobin, a  protein  that  carries  oxygen  to  the  tissues  in  the 
+body. 
+• A red blood cell (RBC) count  measures the number of red blood 
+cells, also known as erythrocytes .This test is most often done as 
+part  of  a  complete  blood  count  (CBC)  that  also  measures  other 
+types of blood cells. Red blood cells  carry oxygen from lungs to 
+every cell in body. cells need oxygen to grow, reproduce, and stay 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+2 
+ 
+ 
+healthy. An  RBC  count  that is  higher  or  lower than  normal is 
+often the first sign of an illness. 
+ 
+ 
+ 
+• single  drop  of  blood contains  millions  of  erythrocytes and  just 
+thousands   of   leukocytes.   Specifically,   males   have   about 5.4 
+million  erythrocytes  per  microliter  of  blood,  and  females  have 
+approximately 4.8 million. 
+       •Abnormal decrease in RBC count is called anemia 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+3 
+ 
+ 
+Function:   
+• They are playing a vital role in transport of respiratory gases (oxygen 
+and  carbon  dioxide)  due  to  the  presence  of  hemoglobin  as  a  major 
+constituent of red blood cell.   
+•Buffering Action in Blood: hemoglobin functions as a good buffer. It 
+is playing an important role in acid base balance. 
+• In Blood Group Determination: RBCs carry the blood group antigens 
+like A antigen, B antigen and Rh factor. This helps in determination of 
+blood group and enables to prevent reactions due to incompatible blood 
+transfusion.  
+ 
+Synthesis of RBC 
+Production of red blood cells (erythropoiesis)   
+      Erythropoiesis  is the process which produces  erythrocytes, which 
+is  the  development  from  erythropoietic  stem  cell  to  mature  red  blood 
+cell. Within the bone  marrow the  red cell is derived from erythroblast, 
+a  nucleated  cell  in  which  there  is  no hemoglobin.  Proliferation  occurs 
+as a result of several successive cell divisions. 
+     During    maturation,    hemoglobin    appears    in    the    cell,    and 
+the nucleus become smaller. After a few days the cell loses its nucleus 
+and is then introduced into the bloodstream.  
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+4 
+ 
+ 
+ 
+ Red Blood Cell Erythropoiesis 
+•  The process of RBC development from stem cells takes about 7 days 
+and is called erythropoiesis.    
+•  The hormone  erythropoietin and  substances  such  as iron,  folic  acid, 
+and vitamin B12 are essential for the production of erythrocytes.   
+• Erythropoietin hormone is  a  glycoprotein  hormone  produced  in  the 
+kidneys and stimulates the production of globin (the protein component 
+of Hb). Hypoxia is the stimulant for the secretion of erythropoietin. 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+5 
+ 
+ 
+Hemoglobin 
+ 
+ 
+Hemoglobin is a characteristic red pigment of red blood cells  
+❖ FUNCTION OF HEMOGLOBIN  
+ It is carrying the respiratory gases, oxygen and carbon dioxide. 
+ ➢ Oxygen from the lungs to tissues (oxyhemoglobin).  
+➢ Carbon dioxide from tissues to lungs (carbhemoglobin).  
+• One molecule of hemoglobin transports four molecules of oxygen. 
+ • There are approximately 250 million hemoglobin molecules in one 
+red blood cell.  
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+6 
+ 
+ 
+• One red blood cell transport 1 billion molecules of oxygen.  
+• At the capillary end the hemoglobin releases the oxygen molecule 
+into the interstitial fluid, which is then transported into the cells.  
+• It also acts as a buffer. It is playing an important  role  in  acid  base 
+balance. 
+It  consists  of  four  folded  chains  of  a  protein  called globin,  designated 
+alpha  1  and  2,  and  beta  1  and  2.  Each  of  these  globin  molecules  is 
+bound to a red pigment molecule called heme, which contains an ion of 
+iron (Fe
+2+
+)  
+ 
+        In the lungs, hemoglobin picks up oxygen, which binds to the iron 
+ions, forming oxyhemoglobin. The bright red, oxygenated hemoglobin 
+travels  to  the  body  tissues,  where  it  releases  some  of  the  oxygen 
+molecules,  becoming  darker  red deoxyhemoglobin, back  to  the  lungs, 
+where it releases it for exchange of oxygen. 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+7 
+ 
+ 
+     Changes  in  the  levels  of  RBCs  can  have  significant  effects  on  the 
+body’s ability to effectively deliver oxygen to the tissues. Ineffective 
+hematopoiesis results  in  insufficient  numbers  of  RBCs  and  results  in 
+one of several forms of anemia. An overproduction of RBCs produces 
+a condition called polycythemia. 
+ 
+ 
+ 
+ 
+ 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+8 
+ 
+ 
+DISORDERS OF ERYTHROCYTES 
+The  size,  shape,  and  number  of  erythrocytes,  and  the  number  of 
+hemoglobin molecules can have a major impact on a person’s health. 
+When  the  number  of  RBCs  or  hemoglobin  is  deficient,  the  general 
+condition  is  called anemia. Anemia  can  be  broken  down  into  three 
+major  groups:  those  caused  by blood  loss,  those  caused  by decreased 
+RBC  production, and  those  caused  by excessive  destruction  of 
+RBCs.  
+A   common   test   is the   mean corpuscular volume   (MCV),   which 
+measures size RBC . Normal-sized cells are referred to as normocytic, 
+smaller-than-normal cells are referred to as microcytic, and larger-than-
+normal cells are referred to as macrocytic. 
+ANEMIA :is  a  reduction  in  the  number  of  RBCs,  the  quantity  of 
+hemoglobin, or the volume of RBCs 
+Symptoms of anemia  
+ Loss of energy 
+ Fatigue 
+ Weakness 
+ Difficulty in concentration  
+ Headache or dizziness 
+ Rapid heart rate (Tachycardia) 
+ Joint pain 
+ Pale skin 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+9 
+ 
+ 
+Types Of Anemia 
+*Iron deficiency anemia 
+*Megaloplastic anemia 
+*Hemolytic anemia 
+*aplastic anemia 
+ 
+IRON DEFICIENCY ANEMIA  (Microcytic anemia ) 
+Anemia  is  a  decrease  in  hemoglobin,  the  molecule  that  carries 
+oxygen  in  red  blood  cells  and  supplies  this  oxygen  to  our  brains  and 
+tissues.  Iron  is  necessary  for  the  creation  of  hemoglobin,  and  iron 
+deficiency  anemia  is  the  most  common  human  anemia.  As  iron  levels 
+decrease (most commonly from blood loss, such as menses, or from an 
+iron-poor  diet),  red  blood  cells  become  smaller  and  less  able  to  carry 
+oxygen to the tissues of the body.  
+ 
+Megaloblastic  anemia  (Macrocytic  anemia) is  characterized  by  red 
+blood cells that are larger than normal. Because the cells are too large, 
+they  may  not  be  able  to  way  out  the  bone  marrow  to  enter  the 
+bloodstream and deliver oxygen. 
+     Megaloblastic  anemia results  from  inhibition  of  DNA  synthesis 
+during red blood cell production. When DNA synthesis is impaired, the 
+cell  cycle  cannot  progress  through  the  cell  cycle  properly,  leading  to 
+cell growth without division, which presents as macrocytosis 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+11 
+ 
+ 
+ 
+ 
+ 
+Causes of Megaloblastic Anemia 
+      The   two   most   common   causes   of megaloblastic   anemia   are 
+deficiencies   of vitamin   B-12   or   folate.   These   two   nutrients   are 
+necessary  for  producing  healthy  red  blood  cells.  When  don’t  get 
+enough of them, it affects the makeup of red blood cells. This leads to 
+cells that don’t divide and reproduce the way they should. 
+Megaloblastic anemia caused by vitamin B-12 deficiency is referred to 
+as pernicious anemia.  
+ 
+ 
+ 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+11 
+ 
+ 
+ 
+      
+ 
+ 
+ 
+
+]
+ً
+اصن بتكا[ 
+Biomedical Engineering Department   
+  Title of the lecture4,5 :- Erythrocytes 
+Dr.  Rasha Fadhel 
+                                         rasha_fadhel@mustaqbal-college.edu.iq             
+ 
+12
+----------------------

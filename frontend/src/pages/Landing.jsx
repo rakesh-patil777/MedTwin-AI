@@ -64,32 +64,6 @@ const Landing = () => {
                <Hero3D />
             </div>
 
-            {/* Floating Glassmorphism AI Preview Card - compactly sized and shifted to Top Left */}
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="absolute top-0 md:top-6 -left-4 md:-left-12 w-full max-w-sm bg-[#faf0e6]/80 backdrop-blur-xl border border-white p-5 rounded-3xl shadow-[0_20px_40px_-20px_rgba(0,0,0,0.12)] z-20 pointer-events-none"
-            >
-               <div className="flex gap-4 items-start mb-4">
-                  <div className="w-12 h-12 rounded-full bg-[#77DD77] flex items-center justify-center text-white shrink-0 shadow-md">
-                    <Bot size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-[15px] mb-1">MedTwin Analysis</h4>
-                    <p className="text-slate-600 text-xs leading-relaxed">"Based on your PDF chart, your glucose levels have stabilized perfectly within the historical 90mg/dL threshold."</p>
-                  </div>
-               </div>
-               {/* Faux Loading Bar showing active intelligence processing */}
-               <div className="w-full bg-slate-200/50 rounded-full h-1.5 overflow-hidden">
-                  <motion.div 
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                    className="h-full bg-[#77DD77]"
-                  />
-               </div>
-            </motion.div>
-
             {/* Secondary Floating Glass Element - Shifted to Bottom Right */}
             <motion.div 
               animate={{ y: [0, 10, 0] }}

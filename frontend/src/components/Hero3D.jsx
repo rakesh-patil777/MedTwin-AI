@@ -1,148 +1,147 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Instance, Instances, Environment } from '@react-three/drei';
+import { Environment, Float, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ----------------------------------------------------
-// 1. Math Engine: generates pure 3D coordinates 
-// bounding the actual volume of a Mathematical Heart!
+// 1. Procedural Heart Asset (Matches 2D Image Concept)
 // ----------------------------------------------------
-const generateHeartPoints = (count = 500) => {
-  const points = [];
-  // Taubin heart algorithm bounding generation
-  while (points.length < count) {
-    const x = (Math.random() - 0.5) * 3;
-    const y = (Math.random() - 0.5) * 3;
-    const z = (Math.random() - 0.5) * 3;
+const HeartShape = () => {
+  const geom = useMemo(() => {
+    const shape = new THREE.Shape();
+    const x = 0, y = 0;
+    shape.moveTo(x + 2.5, y + 2.5);
+    shape.bezierCurveTo(x + 2.5, y + 2.5, x + 2, y, x, y);
+    shape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
+    shape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
+    shape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 5.5, x + 8, y + 3.5);
+    shape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
+    shape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
 
-    const x2 = x * x;
-    const y2 = y * y;
-    const z2 = z * z;
-    const y3 = y * y * y;
+    const extrudeSettings = { depth: 1.5, bevelEnabled: true, bevelSegments: 4, steps: 2, bevelSize: 0.5, bevelThickness: 0.5 };
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    
+    // Center it
+    geometry.computeBoundingBox();
+    const centerOffset = new THREE.Vector3();
+    geometry.boundingBox.getCenter(centerOffset).multiplyScalar(-1);
+    geometry.translate(centerOffset.x, centerOffset.y, centerOffset.z);
+    
+    return geometry;
+  }, []);
 
-    const term1 = x2 + (9 / 4) * z2 + y2 - 1;
-    const term2 = x2 * y3;
-    const term3 = (9 / 80) * z2 * y3;
-
-    // If point exists inside the 3D Taubin Heart volume, keep it!
-    if (Math.pow(term1, 3) - term2 - term3 <= 0) {
-      points.push(new THREE.Vector3(x, y, z));
-    }
-  }
-  return points;
-};
-
-// ----------------------------------------------------
-// 2. Base Mesh: The tiny individual "candy" heart
-// ----------------------------------------------------
-const getHeartGeometry = () => {
-  const shape = new THREE.Shape();
-  const x = 0, y = 0;
-  shape.moveTo(x + 2.5, y + 2.5);
-  shape.bezierCurveTo(x + 2.5, y + 2.5, x + 2, y, x, y);
-  shape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
-  shape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
-  shape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 5.5, x + 8, y + 3.5);
-  shape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
-  shape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
-
-  const extrudeSettings = { depth: 1.5, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 1, bevelThickness: 1 };
-  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-  
-  // Perfectly center the geometry mapping
-  geometry.computeBoundingBox();
-  const centerOffset = new THREE.Vector3();
-  geometry.boundingBox.getCenter(centerOffset).multiplyScalar(-1);
-  geometry.translate(centerOffset.x, centerOffset.y, centerOffset.z);
-  
-  return geometry;
-};
-
-// ----------------------------------------------------
-// 3. Child Component: Each tiny floating heart instance
-// ----------------------------------------------------
-const TinyHeart = ({ position }) => {
-  const ref = useRef();
-  
-  // Randomizer so every single heart wiggles at a different micro-frequency
-  const factor = useMemo(() => 0.5 + Math.random(), []);
-  
-  useFrame((state) => {
-    if(ref.current) {
-        const t = state.clock.elapsedTime * factor;
-        // Apply slight independent micro-vibration
-        ref.current.position.y = position.y + Math.sin(t * 3) * 0.03;
-    }
-  });
-  
   return (
-    <Instance 
-      ref={ref} 
-      position={position} 
-      // Size randomization to match the requested granular image texture
-      scale={0.035 + Math.random() * 0.025} 
-      // Ensure all 2D extrusions generally face the camera but with organic jiggle parameters
-      rotation={[Math.PI, 0, Math.random() * 0.4 - 0.2]} 
-    />
+    <mesh geometry={geom} scale={0.35} rotation={[Math.PI, 0, 0]} position={[-0.5, 0.5, 0]}>
+      <meshStandardMaterial color="#eb5b5b" roughness={0.2} metalness={0.1} />
+    </mesh>
   );
 };
 
 // ----------------------------------------------------
-// 4. Container Component: The Massive Heart Cloud
+// 2. Procedural Stethoscope Asset (Wrapped around Heart)
 // ----------------------------------------------------
-const BigHeartCloud = () => {
-  const points = useMemo(() => generateHeartPoints(450), []);
-  const geom = useMemo(() => getHeartGeometry(), []);
+const Stethoscope = () => {
+    return (
+        <group position={[0.8, -0.5, 1.2]} rotation={[0, 0, Math.PI / 8]}>
+            {/* The Main Light Green Tubing Loop */}
+            <mesh position={[-1, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+               <torusGeometry args={[2.2, 0.25, 16, 100, Math.PI * 1.6]} />
+               <meshStandardMaterial color="#9ff0c9" roughness={0.4} />
+            </mesh>
+            
+            {/* The Chest-Piece (Dark Green disc on the Heart) */}
+            <mesh position={[-3.1, -0.2, 0.2]} rotation={[0.2, Math.PI/2, 0]}>
+               <cylinderGeometry args={[0.7, 0.7, 0.3, 32]} />
+               <meshStandardMaterial color="#00C853" roughness={0.2} metalness={0.5} />
+            </mesh>
+
+            {/* Inner green detail on chest piece */}
+            <mesh position={[-3.1, 0, 0.2]} rotation={[0.2, Math.PI/2, 0]}>
+               <cylinderGeometry args={[0.4, 0.4, 0.35, 32]} />
+               <meshStandardMaterial color="#9ff0c9" roughness={0.3} />
+            </mesh>
+
+            {/* Top Y-Junction Tubing connecting to Earpieces */}
+            <mesh position={[1, 2.2, 0]} rotation={[0, 0, Math.PI / 12]}>
+                <torusGeometry args={[0.8, 0.15, 16, 100, Math.PI]} />
+                <meshStandardMaterial color="#00C853" roughness={0.4} />
+            </mesh>
+
+            {/* Earpiece Tips */}
+            <mesh position={[0.2, 2.2, 0]}>
+               <sphereGeometry args={[0.25, 16, 16]} />
+               <meshStandardMaterial color="#00C853" />
+            </mesh>
+            <mesh position={[1.8, 2.2, 0]}>
+               <sphereGeometry args={[0.25, 16, 16]} />
+               <meshStandardMaterial color="#00C853" />
+            </mesh>
+        </group>
+    );
+};
+
+// ----------------------------------------------------
+// 3. Mathematical Animation Engine (Auto-Rotate + Mouse Movement)
+// ----------------------------------------------------
+const Composition = () => {
   const groupRef = useRef();
-  
-  // The macro heartbeat math that pumps the whole cluster as one unit
+
   useFrame((state) => {
-    if (groupRef.current) {
-        const pulse = 1 + Math.sin(state.clock.elapsedTime * 6) * 0.03;
-        groupRef.current.scale.set(pulse, pulse, pulse);
-        groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.1;
-    }
+    if (!groupRef.current) return;
+    
+    const time = state.clock.getElapsedTime();
+    
+    // 1. Base Automatic Continious Rotation
+    const autoRotateX = Math.sin(time * 0.8) * 0.1;
+    const autoRotateY = time * 0.4;
+    
+    // 2. Dynamic Cursor Integration (Mapping Mouse X/Y to Tilt Values)
+    // state.pointer holds normalized mouse coords from -1 to 1 based on canvas size
+    const targetX = state.pointer.x * 0.6; 
+    const targetY = -state.pointer.y * 0.6;
+
+    // Smoothly interpolate the Rotation Physics combining Both!
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, autoRotateY + targetX, 0.05);
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, autoRotateX + targetY, 0.05);
+    
+    // Subtle float logic specific to the model bundle
+    groupRef.current.position.y = Math.sin(time * 2) * 0.1;
   });
 
   return (
-    <group ref={groupRef} scale={1.8} position={[0, -0.6, 0]}>
-      {/* High Performance R3F Instances to render 450 meshes securely with 1 draw call */}
-      <Instances 
-        range={450} 
-        material={
-           new THREE.MeshStandardMaterial({ 
-             color: '#E11D48',         // Deep Candy Apple Red!
-             roughness: 0.1,           // Extremely glossy
-             metalness: 0.2,           // Shiny highlights 
-             side: THREE.DoubleSide
-           })
-        } 
-        geometry={geom}
-      >
-        {points.map((p, i) => (
-          <TinyHeart key={i} position={p} />
-        ))}
-      </Instances>
+    <group ref={groupRef}>
+         <HeartShape />
+         <Stethoscope />
     </group>
   );
 };
 
+// ----------------------------------------------------
+// 4. Scene Render Controller
+// ----------------------------------------------------
 const Hero3D = () => {
   return (
-    <div className="h-[400px] md:h-[500px] w-full cursor-grab active:cursor-grabbing hover:scale-105 transition-transform duration-700">
-      <Canvas camera={{ position: [0, 0, 5.5] }}>
+    <div className="h-[400px] md:h-[500px] w-full cursor-crosshair">
+      <Canvas camera={{ position: [0, 0, 8.5], fov: 45 }}>
+        {/* Soft, premium lighting complementing Beige/Green palette */}
         <ambientLight intensity={1.5} />
-        <directionalLight position={[5, 10, 5]} intensity={3} />
-        <directionalLight position={[-5, 5, -5]} intensity={1} />
+        <directionalLight position={[10, 10, 5]} intensity={3} color="#ffffff" />
+        <directionalLight position={[-10, -5, -5]} intensity={1.5} color="#faf0e6" />
         
-        {/* Photorealistic Lighting Reflections to make the red hearts "shiny" */}
-        <Environment preset="city" />
+        {/* Generates realistic glossary specular mapping */}
+        <Environment preset="studio" />
 
-        {/* 100% Procedurally Generated 3D Asset ! */}
-        <BigHeartCloud />
-
-        {/* OrbitControls guarantees rotation & cursor drag! */}
-        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={2.5} />
+        <Composition />
+        
+        {/* Beautiful projected grounding shadow onto the #faf0e6 background */}
+        <ContactShadows 
+           position={[0, -3.5, 0]} 
+           opacity={0.35} 
+           scale={10} 
+           blur={2.5} 
+           far={4} 
+           color="#a89b8d" 
+        />
       </Canvas>
     </div>
   );
