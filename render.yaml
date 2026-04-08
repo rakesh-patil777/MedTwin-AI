@@ -1,0 +1,28 @@
+services:
+  # Deploy the Node.js API Backend
+  - type: web
+    name: medtwin-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+  # Deploy the React + Vite Frontend
+  - type: web
+    name: medtwin-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        # This magically pulls the backend's live URL and gives it to the frontend!
+        fromService:
+          type: web
+          name: medtwin-backend
+          envVarKey: RENDER_EXTERNAL_URL

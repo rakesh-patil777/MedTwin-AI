@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const Chat = () => {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hello! I am MedTwin AI, your intelligent medical analytics assistant. How can I help you understand your health data today?' }
@@ -88,7 +90,7 @@ const Chat = () => {
 
     try {
       const sessionId = localStorage.getItem('medtwin_session');
-      const response = await fetch('http://localhost:5000/chat', {
+      const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input.trim(), sessionId: sessionId }) 

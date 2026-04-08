@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, Trash2, Pill, CheckCircle2, BellRing } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const Prescriptions = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [medName, setMedName] = useState('');
@@ -47,7 +49,7 @@ const Prescriptions = () => {
 
   const fetchPrescriptions = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/prescriptions?sessionId=${sessionId}`);
+      const res = await fetch(`${API_BASE}/prescriptions?sessionId=${sessionId}`);
       const data = await res.json();
       if (data.success) {
         setPrescriptions(data.prescriptions);
@@ -116,7 +118,7 @@ const Prescriptions = () => {
     if (!medName || selectedTimings.length === 0) return;
 
     try {
-      const res = await fetch('http://localhost:5000/add-prescription', {
+      const res = await fetch(`${API_BASE}/add-prescription`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, medicineName: medName, timings: selectedTimings })
@@ -134,7 +136,7 @@ const Prescriptions = () => {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:5000/prescriptions/${id}`, {
+      await fetch(`${API_BASE}/prescriptions/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId })
@@ -148,7 +150,7 @@ const Prescriptions = () => {
   const handleGroupDelete = async (ids) => {
     try {
       await Promise.all(ids.map(id =>
-        fetch(`http://localhost:5000/prescriptions/${id}`, {
+        fetch(`${API_BASE}/prescriptions/${id}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId })

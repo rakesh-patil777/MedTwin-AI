@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Phone as PhoneIcon, KeyRound, ArrowRight, Loader2 } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const Login = () => {
   const [authMode, setAuthMode] = useState('email'); // 'email' or 'otp'
   const [email, setEmail] = useState('');
@@ -36,7 +38,7 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/login', {
+      const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -58,7 +60,7 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:5000/send-otp', {
+      const res = await fetch(`${API_BASE}/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: countryCode + phone })
@@ -81,7 +83,7 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:5000/verify-otp', {
+      const res = await fetch(`${API_BASE}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: countryCode + phone, otp })

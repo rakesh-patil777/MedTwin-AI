@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { UploadCloud, Server, AlertCircle, Loader2, BrainCircuit, FileText, Activity, Trash2, TrendingUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const Dashboard = () => {
   const [apiResponse, setApiResponse] = useState("");
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ const Dashboard = () => {
     const sessionId = localStorage.getItem('medtwin_session');
     if (!sessionId) return;
     try {
-      const res = await fetch(`http://localhost:5000/files?sessionId=${sessionId}`);
+      const res = await fetch(`${API_BASE}/files?sessionId=${sessionId}`);
       const data = await res.json();
       if (data.success) setPastFiles(data.files);
     } catch (e) {
@@ -42,7 +44,7 @@ const Dashboard = () => {
     if (!window.confirm("Are you sure you want to permanently delete this medical record?")) return;
     const sessionId = localStorage.getItem('medtwin_session');
     try {
-      await fetch(`http://localhost:5000/files/${encodeURIComponent(id)}?sessionId=${sessionId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/files/${encodeURIComponent(id)}?sessionId=${sessionId}`, { method: 'DELETE' });
       fetchPastFiles();
     } catch (e) {
       console.error("Delete failed", e);
@@ -77,7 +79,7 @@ const Dashboard = () => {
       setIsUploading(true);
       setUploadError(null);
       setUploadStatus("Uploading...");
-      const res = await fetch('http://localhost:5000/upload-report', {
+      const res = await fetch(`${API_BASE}/upload-report`, {
         method: 'POST',
         body: formData,
       });
@@ -115,7 +117,7 @@ const Dashboard = () => {
     }
 
     // Fetch API connection on component mount
-    fetch('http://localhost:5000/test')
+    fetch(`${API_BASE}/test`)
       .then(res => {
         if (!res.ok) throw new Error('Network issue contacting server.');
         return res.json();
