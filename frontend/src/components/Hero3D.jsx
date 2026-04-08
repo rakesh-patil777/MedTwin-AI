@@ -4,78 +4,95 @@ import { Environment, Float, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ----------------------------------------------------
-// 1. Procedural Heart Asset (Matches 2D Image Concept)
-// ----------------------------------------------------
-const HeartShape = () => {
-  const geom = useMemo(() => {
-    const shape = new THREE.Shape();
-    const x = 0, y = 0;
-    shape.moveTo(x + 2.5, y + 2.5);
-    shape.bezierCurveTo(x + 2.5, y + 2.5, x + 2, y, x, y);
-    shape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
-    shape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
-    shape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 5.5, x + 8, y + 3.5);
-    shape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
-    shape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
-
-    const extrudeSettings = { depth: 1.5, bevelEnabled: true, bevelSegments: 4, steps: 2, bevelSize: 0.5, bevelThickness: 0.5 };
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    
-    // Center it
-    geometry.computeBoundingBox();
-    const centerOffset = new THREE.Vector3();
-    geometry.boundingBox.getCenter(centerOffset).multiplyScalar(-1);
-    geometry.translate(centerOffset.x, centerOffset.y, centerOffset.z);
-    
-    return geometry;
-  }, []);
-
-  return (
-    <mesh geometry={geom} scale={0.35} rotation={[Math.PI, 0, 0]} position={[-0.5, 0.5, 0]}>
-      <meshStandardMaterial color="#eb5b5b" roughness={0.2} metalness={0.1} />
-    </mesh>
-  );
-};
-
-// ----------------------------------------------------
-// 2. Procedural Stethoscope Asset (Wrapped around Heart)
+// 2. Procedural Stethoscope Asset (Stand-Alone Hero Object)
 // ----------------------------------------------------
 const Stethoscope = () => {
+    const jY = 0.5;
+
+    const leftCurve = useMemo(() => new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, jY, 0),
+        new THREE.Vector3(-0.4, jY + 0.3, 0),
+        new THREE.Vector3(-0.6, jY + 1.0, 0.2),
+        new THREE.Vector3(-0.4, jY + 1.4, 0.4),
+    ]), []);
+
+    const rightCurve = useMemo(() => new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, jY, 0),
+        new THREE.Vector3(0.4, jY + 0.3, 0),
+        new THREE.Vector3(0.6, jY + 1.0, 0.2),
+        new THREE.Vector3(0.4, jY + 1.4, 0.4),
+    ]), []);
+
+    const rubberCurve = useMemo(() => new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, jY, 0),
+        new THREE.Vector3(0, jY - 0.5, 0),
+        new THREE.Vector3(-0.2, jY - 1.5, 0.2),
+        new THREE.Vector3(0, jY - 2.2, 0.5),
+        new THREE.Vector3(0.8, jY - 2.0, 0.4),
+        new THREE.Vector3(1.2, jY - 1.2, 0.2),
+        new THREE.Vector3(1.2, jY - 0.9, 0),
+    ]), []);
+
     return (
-        <group position={[0.8, -0.5, 1.2]} rotation={[0, 0, Math.PI / 8]}>
-            {/* The Main Light Green Tubing Loop */}
-            <mesh position={[-1, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-               <torusGeometry args={[2.2, 0.25, 16, 100, Math.PI * 1.6]} />
-               <meshStandardMaterial color="#9ff0c9" roughness={0.4} />
-            </mesh>
-            
-            {/* The Chest-Piece (Dark Green disc on the Heart) */}
-            <mesh position={[-3.1, -0.2, 0.2]} rotation={[0.2, Math.PI/2, 0]}>
-               <cylinderGeometry args={[0.7, 0.7, 0.3, 32]} />
-               <meshStandardMaterial color="#00C853" roughness={0.2} metalness={0.5} />
+        <group position={[-0.2, 0.5, 0]} scale={1.4}>
+            {/* Rubber Main Tube */}
+            <mesh>
+                <tubeGeometry args={[rubberCurve, 64, 0.08, 16, false]} />
+                <meshStandardMaterial color="#77DD77" roughness={0.4} />
             </mesh>
 
-            {/* Inner green detail on chest piece */}
-            <mesh position={[-3.1, 0, 0.2]} rotation={[0.2, Math.PI/2, 0]}>
-               <cylinderGeometry args={[0.4, 0.4, 0.35, 32]} />
-               <meshStandardMaterial color="#9ff0c9" roughness={0.3} />
+            {/* Left Metal Tube */}
+            <mesh>
+                <tubeGeometry args={[leftCurve, 32, 0.05, 16, false]} />
+                <meshStandardMaterial color="#cfcfcf" metalness={0.8} roughness={0.2} />
             </mesh>
 
-            {/* Top Y-Junction Tubing connecting to Earpieces */}
-            <mesh position={[1, 2.2, 0]} rotation={[0, 0, Math.PI / 12]}>
-                <torusGeometry args={[0.8, 0.15, 16, 100, Math.PI]} />
-                <meshStandardMaterial color="#00C853" roughness={0.4} />
+            {/* Right Metal Tube */}
+            <mesh>
+                <tubeGeometry args={[rightCurve, 32, 0.05, 16, false]} />
+                <meshStandardMaterial color="#cfcfcf" metalness={0.8} roughness={0.2} />
             </mesh>
 
-            {/* Earpiece Tips */}
-            <mesh position={[0.2, 2.2, 0]}>
-               <sphereGeometry args={[0.25, 16, 16]} />
-               <meshStandardMaterial color="#00C853" />
+            {/* Y-Junction Connector */}
+            <mesh position={[0, jY, 0]}>
+                <sphereGeometry args={[0.12, 16, 16]} />
+                <meshStandardMaterial color="#77DD77" roughness={0.4} />
             </mesh>
-            <mesh position={[1.8, 2.2, 0]}>
-               <sphereGeometry args={[0.25, 16, 16]} />
-               <meshStandardMaterial color="#00C853" />
+
+            {/* Left Ear Tip */}
+            <mesh position={[-0.4, jY + 1.4, 0.4]}>
+                <sphereGeometry args={[0.12, 16, 16]} />
+                <meshStandardMaterial color="#faf0e6" roughness={0.2} />
             </mesh>
+
+            {/* Right Ear Tip */}
+            <mesh position={[0.4, jY + 1.4, 0.4]}>
+                <sphereGeometry args={[0.12, 16, 16]} />
+                <meshStandardMaterial color="#faf0e6" roughness={0.2} />
+            </mesh>
+
+            {/* Chest Piece */}
+            <group position={[1.2, jY - 0.9, 0]} rotation={[0.3, -0.2, 0.1]}>
+                <mesh position={[0, 0.1, 0]}>
+                    <cylinderGeometry args={[0.06, 0.06, 0.3, 16]} />
+                    <meshStandardMaterial color="#cfcfcf" metalness={0.8} roughness={0.2} />
+                </mesh>
+                
+                <mesh position={[0, -0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.4, 0.4, 0.15, 32]} />
+                    <meshStandardMaterial color="#cfcfcf" metalness={0.8} roughness={0.2} />
+                </mesh>
+
+                <mesh position={[0, -0.1, 0.08]} rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.35, 0.35, 0.16, 32]} />
+                    <meshStandardMaterial color="#77DD77" roughness={0.3} />
+                </mesh>
+                
+                <mesh position={[0, -0.1, -0.08]} rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.25, 0.25, 0.16, 32]} />
+                    <meshStandardMaterial color="#cfcfcf" metalness={0.8} roughness={0.2} />
+                </mesh>
+            </group>
         </group>
     );
 };
@@ -110,7 +127,6 @@ const Composition = () => {
 
   return (
     <group ref={groupRef}>
-         <HeartShape />
          <Stethoscope />
     </group>
   );

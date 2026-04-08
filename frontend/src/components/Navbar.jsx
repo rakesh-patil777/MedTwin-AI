@@ -37,11 +37,7 @@ const Navbar = () => {
                 Logout <LogOut size={16} />
               </button>
             </>
-          ) : (
-            <Link to="/login" className="bg-[#77DD77] text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-[#68d168] transition-colors active:scale-95">
-              Secure Login
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </nav>
