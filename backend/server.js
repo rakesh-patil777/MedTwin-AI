@@ -72,6 +72,12 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: "Email and password required." });
 
+  // 🔴 HARDCODED TYPO-SQUATTER BLOCKER
+  const commonTypos = ['@gmil.com', '@gmal.com', '@gmail.con', '@gmail.co', '@yaho.com', '@hotmal.com'];
+  if (commonTypos.some(typo => email.toLowerCase().includes(typo))) {
+      return res.status(400).json({ error: "Typo detected in email provider (e.g. @gmil.com). Please use a real email." });
+  }
+
   // 🔴 DEEP VERIFICATION: Check if the mailbox physically exists on the provider's site!
   try {
     const MailCheck = await emailValidator.validate({
@@ -85,10 +91,11 @@ app.post('/login', async (req, res) => {
 
     if (!MailCheck.valid) {
         console.log(`[FIREWALL] Rejected fake/dead email: ${email} - Reason: ${MailCheck.reason}`);
-        return res.status(400).json({ error: "invalid mail" });
+        return res.status(400).json({ error: "Please provide a valid email address (Check for typos like @gmil.com)." });
     }
   } catch (err) {
      console.log("Deep Mail Check Error: ", err.message);
+     return res.status(400).json({ error: "Failed to securely validate email domain. Please ensure you typed it correctly." });
   }
 
   let user = usersDB.find(u => u.email === email.toLowerCase());
