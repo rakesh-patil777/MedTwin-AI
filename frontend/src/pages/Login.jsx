@@ -11,6 +11,7 @@ const Login = () => {
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
   const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -100,6 +101,61 @@ const Login = () => {
     }
   };
 
+  const handleSendForgotPasswordOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/forgot-password-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setIsOtpSent(true);
+      alert(`${data.message}\n\nHACKATHON OTP: ${data.mockOtp}`); 
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      setLoading(false);
+      return setError("Weak Password! Must be at least 8 characters long and contain 1 capital letter, 1 number, and 1 special character.");
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      alert("Password successfully reset! You can now login.");
+      setAuthMode('email');
+      setIsOtpSent(false);
+      setOtp('');
+      setPassword('');
+      setNewPassword('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto mt-20 p-8 bg-white/60 backdrop-blur-xl border border-[#d0bfae] rounded-3xl shadow-xl relative z-10 w-full animate-fade-in">
       <div className="text-center mb-8">
@@ -110,13 +166,13 @@ const Login = () => {
       <div className="flex p-1 bg-[#faf0e6] border border-[#d0bfae] rounded-xl mb-6">
         <button
           className={`flex-1 py-2 font-bold text-sm rounded-lg transition-colors ${authMode === 'email' ? 'bg-[#77DD77] text-white shadow-sm' : 'text-[#a89b8d] hover:text-[#2f2a26]'}`}
-          onClick={() => { setAuthMode('email'); setError(null); }}
+          onClick={() => { setAuthMode('email'); setError(null); setIsOtpSent(false); }}
         >
           Email & Pass
         </button>
         <button
           className={`flex-1 py-2 font-bold text-sm rounded-lg transition-colors ${authMode === 'otp' ? 'bg-[#77DD77] text-white shadow-sm' : 'text-[#a89b8d] hover:text-[#2f2a26]'}`}
-          onClick={() => { setAuthMode('otp'); setError(null); }}
+          onClick={() => { setAuthMode('otp'); setError(null); setIsOtpSent(false); }}
         >
           Phone OTP
         </button>
@@ -153,13 +209,18 @@ const Login = () => {
                 placeholder="••••••••"
               />
             </div>
-            <p className="text-xs text-[#a89b8d] mt-2 font-medium">Auto-registers if new user.</p>
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-xs text-[#a89b8d] font-medium">Auto-registers if new user.</p>
+              <button type="button" onClick={() => { setAuthMode('forgot'); setError(null); setIsOtpSent(false); }} className="text-xs font-bold text-[#5ec15e] hover:text-[#429542] transition-colors">
+                Forgot Password?
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={loading} className="w-full mt-6 bg-[#2f2a26] hover:bg-[#403933] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
             {loading ? <Loader2 size={18} className="animate-spin" /> : <>Sign In <ArrowRight size={18} /></>}
           </button>
         </form>
-      ) : (
+      ) : authMode === 'otp' ? (
         <div className="space-y-4">
           {!isOtpSent ? (
             <form onSubmit={handleSendOtp}>
@@ -202,6 +263,55 @@ const Login = () => {
               </div>
               <button type="submit" disabled={loading} className="w-full mt-6 bg-[#77DD77] hover:bg-[#68d168] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <>Verify & Enter <ArrowRight size={18} /></>}
+              </button>
+            </form>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {!isOtpSent ? (
+            <form onSubmit={handleSendForgotPasswordOtp}>
+              <label className="block text-xs font-bold text-[#a89b8d] uppercase tracking-wider mb-2">Account Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 text-[#a89b8d]" size={18} />
+                <input
+                  type="email" required
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  className="w-full bg-white border border-[#d0bfae] pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#77DD77] text-[#2f2a26]"
+                  placeholder="doctor@clinic.com"
+                />
+              </div>
+              <button type="submit" disabled={loading} className="w-full mt-6 bg-[#2f2a26] hover:bg-[#403933] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <>Send Reset OTP <ArrowRight size={18} /></>}
+              </button>
+              <button type="button" onClick={() => setAuthMode('email')} className="w-full mt-3 text-[#a89b8d] hover:text-[#2f2a26] text-sm font-bold transition-colors">
+                Back to Login
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleResetPassword}>
+              <label className="block text-xs font-bold text-[#a89b8d] uppercase tracking-wider mb-2">Enter 6-Digit Email OTP</label>
+              <div className="relative mb-4">
+                <KeyRound className="absolute left-3 top-3 text-[#a89b8d]" size={18} />
+                <input
+                  type="text" required maxLength="6"
+                  value={otp} onChange={e => setOtp(e.target.value)}
+                  className="w-full bg-white border border-[#d0bfae] pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#77DD77] text-[#2f2a26] tracking-[0.5em] font-bold"
+                  placeholder="000000"
+                />
+              </div>
+              <label className="block text-xs font-bold text-[#a89b8d] uppercase tracking-wider mb-2">New Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 text-[#a89b8d]" size={18} />
+                <input
+                  type="password" required
+                  value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                  className="w-full bg-white border border-[#d0bfae] pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#77DD77] text-[#2f2a26]"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button type="submit" disabled={loading} className="w-full mt-6 bg-[#77DD77] hover:bg-[#68d168] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <>Reset Password <ArrowRight size={18} /></>}
               </button>
             </form>
           )}

@@ -148,6 +148,41 @@ app.post('/verify-otp', (req, res) => {
   return res.json({ success: true, sessionId: user.id, message: "OTP Verified!" });
 });
 
+// 4. Forgot Password - Send OTP
+app.post('/forgot-password-otp', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email required." });
+
+  const user = usersDB.find(u => u.email === email.toLowerCase());
+  if (!user) return res.status(404).json({ error: "No account found with this email." });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore[email.toLowerCase()] = otp; // Store OTP for email
+  
+  console.log(`\n============================================`);
+  console.log(`📧 [MOCK EMAIL] Password Reset OTP for ${email} is: ${otp}`);
+  console.log(`============================================\n`);
+  return res.json({ success: true, message: "Recovery OTP sent to email!", mockOtp: otp });
+});
+
+// 5. Reset Password - Verify OTP & Set New Password
+app.post('/reset-password', (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) return res.status(400).json({ error: "All fields required." });
+
+  const formattedEmail = email.toLowerCase();
+  if (otpStore[formattedEmail] !== otp) return res.status(400).json({ error: "Invalid or expired OTP." });
+
+  const user = usersDB.find(u => u.email === formattedEmail);
+  if (!user) return res.status(404).json({ error: "User not found." });
+
+  user.password = hashPassword(newPassword);
+  delete otpStore[formattedEmail]; // Cleanup
+  
+  console.log(`🔑 Password successfully reset for: ${formattedEmail}`);
+  return res.json({ success: true, message: "Password reset successfully!" });
+});
+
 // ==========================================
 // PRESCRIPTION REMINDER APIs
 // ==========================================
