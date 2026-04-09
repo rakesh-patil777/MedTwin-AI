@@ -72,9 +72,8 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: "Email and password required." });
 
-  // 🔴 HARDCODED TYPO-SQUATTER BLOCKER
   const commonTypos = ['@gmil.com', '@gmal.com', '@gmail.con', '@gmail.co', '@yaho.com', '@hotmal.com'];
-  if (commonTypos.some(typo => email.toLowerCase().includes(typo))) {
+  if (commonTypos.some(typo => email.toLowerCase().endsWith(typo))) {
       return res.status(400).json({ error: "Typo detected in email provider (e.g. @gmil.com). Please use a real email." });
   }
 
